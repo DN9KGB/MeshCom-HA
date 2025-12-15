@@ -171,13 +171,6 @@ Home Assistant automatically selects the correct language.
 
 # 🛠 Troubleshooting
 
-### ❗ The integration cannot be added through the UI  
-Ensure `manifest.json` contains:
-
-```json
-"config_flow": true
-```
-
 ### ❗ No messages received  
 Check your node:
 
