@@ -243,5 +243,5 @@ MIT License — see `LICENSE`.
 
 # 👤 Author
 
-D1ABC  
+DN9KGB  
 GitHub: https://github.com/DN9KGB/MeshCom-HA
