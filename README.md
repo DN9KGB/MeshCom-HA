@@ -1,6 +1,5 @@
 # Home-Assistant MeshCom Integration
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://hacs.xyz/)
 [![Version](https://img.shields.io/github/v/release/DN9KGB/MeshCom-HA?style=for-the-badge)](https://github.com/DN9KGB/MeshCom-HA/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
@@ -26,39 +25,10 @@ This integration enables full automation support for MeshCom messaging without a
 ✔ Fires a custom event: **`meshcom_message`**  
 ✔ Fully configurable through the UI (no YAML required)  
 ✔ Supports multilingual UI (English + German)  
-✔ HACS compatible  
 
 ---
 
 # 🧩 Installation
-
-You can install this integration **via HACS** (recommended) or manually.
-
----
-
-# 🟦 Install via HACS (Recommended)
-
-### 1. Open HACS → *Integrations*  
-### 2. Click the menu (⋮) → **Custom repositories**  
-### 3. Add:
-
-```
-https://github.com/DN9KGB/MeshCom-HA
-```
-
-Category: **Integration**
-
-### 4. Install *Home-Assistant MeshCom Integration*  
-### 5. Restart Home Assistant  
-### 6. Go to:
-
-**Settings → Devices & Services → Add Integration → “MeshCom”**
-
-No YAML required.
-
----
-
-# 📁 Manual Installation (Alternative)
 
 1. Download the latest release ZIP from:  
    https://github.com/DN9KGB/MeshCom-HA/releases
