@@ -248,7 +248,7 @@ Pull requests are welcome!
 
 # 📝 License
 
-MIT License — see `LICENSE`.
+MIT License — see [LICENSE.md](LICENSE.md)
 
 ---
 
