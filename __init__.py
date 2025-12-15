@@ -4,11 +4,14 @@ import asyncio
 import json
 import logging
 import re
+import voluptuous as vol
 from typing import Any, Awaitable, Callable
 from datetime import datetime, timezone
 
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback, ServiceCall
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 DOMAIN = "meshcom"
@@ -152,6 +155,7 @@ class MeshComGateway(asyncio.DatagramProtocol):
             "firmware": payload.get("firmware"),
             "fw_sub": payload.get("fw_sub"),
             "raw": payload,
+            "my_call": self.my_call,
         }
 
         _LOGGER.debug("Firing event meshcom_message: %s", event_data)
@@ -176,6 +180,36 @@ class MeshComGateway(asyncio.DatagramProtocol):
 
         return _remove
 
+    async def async_send_message(self, node_ip: str, port: int, dst: str, msg: str) -> None:
+        """Send a text message into the MeshCom network via UDP."""
+        if not self.transport:
+            raise HomeAssistantError("MeshCom UDP transport is not available")
+
+        dst = dst.strip()
+        msg = msg.strip()
+
+        if not dst:
+            raise HomeAssistantError("Destination (dst) must not be empty")
+        if not msg:
+            raise HomeAssistantError("Message text must not be empty")
+
+        # MeshCom spec: max 150 characters
+        if len(msg) > 150:
+            _LOGGER.warning("Message too long (%d chars), truncating to 150", len(msg))
+            msg = msg[:150]
+
+        payload = {
+            "type": "msg",
+            "dst": dst,
+            "msg": msg,
+        }
+
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        _LOGGER.debug("Sending MeshCom UDP message to %s:%s: %s", node_ip, port, payload)
+
+        # Use existing UDP transport, but send to node_ip:port
+        self.transport.sendto(data, (node_ip, port))
+
 
 # INTEGRATION SETUP
 
@@ -189,10 +223,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up MeshCom from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    bind_ip = entry.data.get("bind_ip", "0.0.0.0")
-    port = entry.data.get("port", 1799)
-    my_call = entry.data.get("my_call")
-    groups_raw = entry.data.get("groups", "")
+    options = entry.options or entry.data
+
+    bind_ip = options.get("bind_ip", "0.0.0.0")
+    port = options.get("port", 1799)
+    my_call = options.get("my_call")
+    groups_raw = options.get("groups", "")
+    node_ip = options.get("node_ip")  # NEW
     
     groups = [g.strip() for g in str(groups_raw).split(",") if g.strip()]
 
@@ -216,7 +253,47 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "gateway": gateway,
         "transport": transport,
+        "options": options,
     }
+
+    async def handle_send_message(call: ServiceCall) -> None:
+        """Handle the meshcom.send_message service."""
+        dst: str = call.data["dst"]
+        msg: str = call.data["msg"]
+
+        # Use node_ip from service call or from options
+        node_ip_call: str | None = call.data.get("node_ip")
+        node_ip_effective: str | None = node_ip_call or options.get("node_ip")
+
+        if not node_ip_effective:
+            raise HomeAssistantError(
+                "No node_ip configured. Set it in the MeshCom options or pass node_ip in the service call."
+            )
+
+        port_effective: int = call.data.get("port", options.get("port", 1799))
+
+        await gateway.async_send_message(
+            node_ip=node_ip_effective,
+            port=port_effective,
+            dst=dst,
+            msg=msg,
+        )
+
+    service_schema = vol.Schema(
+        {
+            vol.Required("dst"): cv.string,       # destination path (*, group, callsign)
+            vol.Required("msg"): cv.string,       # message text
+            vol.Optional("node_ip"): cv.string,   # override configured node_ip
+            vol.Optional("port"): cv.port,        # override configured port
+        }
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "send_message",
+        handle_send_message,
+        schema=service_schema,
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

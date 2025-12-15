@@ -30,8 +30,9 @@ class MeshComConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             {
                 vol.Required("bind_ip", default="0.0.0.0"): str,
                 vol.Required("port", default=1799): int,
-                vol.Required("my_call", default="DXXXXX"): str,
+                vol.Required("my_call", default="XXXXXX-XX"): str,
                 vol.Required("groups", default="*,10,262"): str,
+                vol.Optional("node_ip", default="192.168.1.50"): str,
             }
         )
 
@@ -69,8 +70,9 @@ class MeshComOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required("bind_ip", default=current.get("bind_ip", "0.0.0.0")): str,
                 vol.Required("port", default=current.get("port", 1799)): int,
-                vol.Required("my_call", default=current.get("my_call", "DN9XXX")): str,
-                vol.Required("groups", default=current.get("groups", "*,LOCAL")): str,
+                vol.Required("my_call", default=current.get("my_call", "XXXXXX-XX")): str,
+                vol.Required("groups", default=current.get("groups", "*,10,262")): str,
+                vol.Optional("node_ip", default=current.get("node_ip", "192.168.1.50")): str,
             }
         )
 

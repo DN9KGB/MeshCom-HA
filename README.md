@@ -5,26 +5,28 @@
 
 A native MeshCom integration for Home Assistant that receives UDP packets directly from MeshCom nodes, parses message content, filters by callsign/groups, and exposes structured entities and events to Home Assistant.
 
-This integration enables full automation support for MeshCom messaging without any external proxy or service.
+This integration enables full automation support for **bidirectional** MeshCom messaging without any external proxy or service.
 
 ---
 
 ## ✨ Features
 
 ✔ Direct UDP reception from MeshCom nodes  
+✔ **Send messages from Home Assistant into the MeshCom network**  
 ✔ Filters messages by **destination callsign** or **groups**  
 ✔ Only processes **text messages** with non-empty payload  
-✔ Provides multiple sensors:  
-- Last Message  
-- Source Callsign  
-- Destination Callsign  
-- Message ID  
-- Timestamp (device_class: timestamp, auto-localized)  
-- Raw JSON  
+✔ Provides multiple sensors:
+- Last Message
+- Source Callsign
+- Destination Callsign
+- Message ID
+- Timestamp (device_class: timestamp, auto-localized)
+- Raw JSON
 
 ✔ Fires a custom event: **`meshcom_message`**  
+✔ Event payload includes the configured **`my_call`**  
 ✔ Fully configurable through the UI (no YAML required)  
-✔ Supports multilingual UI (English + German)  
+✔ Supports multilingual UI (English + German)
 
 ---
 
@@ -59,7 +61,7 @@ custom_components/meshcom/
 
 # 📡 MeshCom Node Configuration
 
-To send messages into Home Assistant, your MeshCom node must have external UDP output enabled.
+To **receive and send** messages via Home Assistant, your MeshCom node must have external UDP enabled.
 
 Typical MeshCom configuration:
 
@@ -85,8 +87,10 @@ UDP port to receive MeshCom packets.
 Default: `1799`
 
 ### **My Call**
-Your personal MeshCom callsign with ssid.  
-Only messages addressed to this callsign or matching one of your groups will be processed.
+Your personal MeshCom callsign with SSID.
+This value is:
+- used to filter incoming messages
+- automatically exposed as `my_call` in the `meshcom_message` event
 
 ### **Groups**
 Comma-separated list of allowed group destinations.  
@@ -130,35 +134,74 @@ data:
   dst: D1ABC-12
   msg: "Hello World"
   msg_id: "EF27D069"
-  is_time_beacon: false
+  my_call: D1ABC
   firmware: 35
   fw_sub: "h"
   raw: {...}
 ```
 
-Useful for advanced automations.
+---
+
+# 📤 Sending Messages from Home Assistant
+
+Service name:
+
+```
+meshcom.send_message
+```
+
+Example:
+
+```yaml
+action: meshcom.send_message
+data:
+  dst: "D1ABC-10"
+  msg: "Test from Home Assistant"
+```
 
 ---
 
-# ⚡ Example Automation
-
+# ⚡ Example Automation (Receive)
 ```yaml
+alias: "MeshCom: message received"
 description: "MeshCom: notify on incoming message"
 triggers:
-   - trigger: event
-     event_type: meshcom_message
+  - trigger: event
+    event_type: meshcom_message
+conditions:
+  - condition: template
+    value_template: |
+      {{ (trigger.event.data.msg | default('')) | length > 0 }}
+actions:
+  - action: notify.notify
+    data:
+      title: MeshCom
+      message: >
+        MeshCom: {{ trigger.event.data.src }} → {{ trigger.event.data.dst }}: {{
+        trigger.event.data.msg }}
+mode: queued
+```
+
+---
+
+# ⚡ Example Automation: Respond to PING
+
+```yaml
+alias: "MeshCom: respond to PING"
+triggers:
+   - event_type: meshcom_message
+     trigger: event
 conditions:
    - condition: template
      value_template: |
-        {{ (trigger.event.data.msg | default('')) | length > 0 }}
+        {{ trigger.event.data.msg | lower | trim == 'ping' }}
 actions:
-   - action: notify.notify
+   - action: meshcom.send_message
      data:
-        title: MeshCom
-        message: >
-           MeshCom: {{ trigger.event.data.src }} → {{ trigger.event.data.dst }}: {{
-           trigger.event.data.msg }}
-mode: queued
+        dst: "{{ trigger.event.data.src }}"
+        msg: |
+           {{ trigger.event.data.my_call }} alive, all systems nominal
+mode: single
 ```
 
 ---
