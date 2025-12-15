@@ -80,7 +80,6 @@ custom_components/meshcom/
 ├── translations/
 │   ├── en.json
 │   └── de.json
-└── logo.png / icon.png
 ```
 
 3. Restart Home Assistant  
