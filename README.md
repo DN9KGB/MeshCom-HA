@@ -143,17 +143,22 @@ Useful for advanced automations.
 # ⚡ Example Automation
 
 ```yaml
-alias: Notify on MeshCom Message
-trigger:
-  - platform: event
-    event_type: meshcom_message
-
-action:
-  - service: notify.mobile_app_phone
-    data:
-      message: >
-        MeshCom: {{ trigger.event.data.src }} → {{ trigger.event.data.dst }}:
-        {{ trigger.event.data.msg }}
+description: "MeshCom: notify on incoming message"
+triggers:
+   - trigger: event
+     event_type: meshcom_message
+conditions:
+   - condition: template
+     value_template: |
+        {{ (trigger.event.data.msg | default('')) | length > 0 }}
+actions:
+   - action: notify.notify
+     data:
+        title: MeshCom
+        message: >
+           MeshCom: {{ trigger.event.data.src }} → {{ trigger.event.data.dst }}: {{
+           trigger.event.data.msg }}
+mode: queued
 ```
 
 ---
