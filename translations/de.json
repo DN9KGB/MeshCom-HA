@@ -1,0 +1,65 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MeshCom Einrichtung",
+        "description": "Konfiguriere den MeshCom UDP-Empfänger.",
+        "data": {
+          "bind_ip": "Bind-IP",
+          "port": "UDP-Port",
+          "my_call": "Mein Call",
+          "groups": "Gruppen"
+        }
+      },
+      "init": {
+        "title": "MeshCom Optionen",
+        "description": "Passe die Einstellungen der Integration an.",
+        "data": {
+          "bind_ip": "Bind-IP",
+          "port": "UDP-Port",
+          "my_call": "Mein Call",
+          "groups": "Gruppen"
+        }
+      }
+    },
+    "error": {},
+    "abort": {}
+  },
+  "selector": {},
+  "entity": {
+    "sensor": {
+      "last_message": {
+        "name": "MeshCom: Nachrichtentext"
+      },
+      "source_callsign": {
+        "name": "MeshCom: Sender Rufzeichen"
+      },
+      "destination_callsign": {
+        "name": "MeshCom: Empfänger Rufzeichen"
+      },
+      "message_id": {
+        "name": "MeshCom: Nachrichten-ID"
+      },
+      "raw_json": {
+        "name": "MeshCom: Rohdaten"
+      },
+      "timestamp": {
+        "name": "MeshCom: Zeitstempel"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "MeshCom Optionen",
+        "description": "Konfiguriere optionale Parameter.",
+        "data": {
+          "bind_ip_description": "IP-Adresse, auf der die Integration lauscht. Standard: 0.0.0.0",
+          "port_description": "UDP-Port, der von MeshCom-Nodes genutzt wird. Standard: 1799",
+          "my_call_description": "Dein eigener Call mit SSID (XXXXXX-XX). Nachrichten werden nur verarbeitet, wenn sie an dich oder deine Gruppen adressiert sind.",
+          "groups_description": "Kommagetrennte Liste gültiger Gruppen. '*' bedeutet: alle Nachrichten empfangen."
+        }
+      }
+    }
+  }
+}

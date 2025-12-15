@@ -1,0 +1,65 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MeshCom Setup",
+        "description": "Configure the MeshCom UDP receiver.",
+        "data": {
+          "bind_ip": "Bind IP",
+          "port": "UDP Port",
+          "my_call": "My Call",
+          "groups": "Groups"
+        }
+      },
+      "init": {
+        "title": "MeshCom Options",
+        "description": "Adjust the integration settings.",
+        "data": {
+          "bind_ip": "Bind IP",
+          "port": "UDP Port",
+          "my_call": "My Call",
+          "groups": "Groups"
+        }
+      }
+    },
+    "error": {},
+    "abort": {}
+  },
+  "selector": {},
+  "entity": {
+    "sensor": {
+      "last_message": {
+        "name": "MeshCom Message Text"
+      },
+      "source_callsign": {
+        "name": "MeshCom Source Callsign"
+      },
+      "destination_callsign": {
+        "name": "MeshCom Destination Callsign"
+      },
+      "message_id": {
+        "name": "MeshCom Message ID"
+      },
+      "raw_json": {
+        "name": "MeshCom Raw JSON"
+      },
+      "timestamp": {
+        "name": "MeshCom Timestamp"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "MeshCom Options",
+        "description": "Configure optional parameters.",
+        "data": {
+          "bind_ip_description": "IP the integration listens on. Default: 0.0.0.0",
+          "port_description": "UDP port used by MeshCom nodes. Default 1799",
+          "my_call_description": "Your own callsign with ssid (XXXXXX-XX). Messages are only processed when addressed to you or your groups.",
+          "groups_description": "Comma-separated list of valid groups. '*' means receive all messages."
+        }
+      }
+    }
+  }
+}
