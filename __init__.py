@@ -117,15 +117,27 @@ class MeshComGateway(asyncio.DatagramProtocol):
             )
             return
 
-
         # Strip APRS-style message number suffix: "text{1234"
-        clean_msg_text = re.sub(r"\{\d{1,4}$", "", raw_msg_text)
+        clean_msg_text = re.sub(r"\{\d{1,4}$", "", raw_msg_text).strip()
 
         # Detect time beacons like "{CET}..." / "{CEST}..."
-        is_time_beacon = clean_msg_text.startswith("{CET}") or clean_msg_text.startswith(
-            "{CEST}"
-        )
+        is_time_beacon = clean_msg_text.startswith("{CET}") or clean_msg_text.startswith("{CEST}")
 
+        # Drop time beacons entirely (no sensors, no events)
+        if is_time_beacon:
+            _LOGGER.debug("Ignoring time beacon from %s: %s", src_call, clean_msg_text)
+            return
+
+        # Ignore ACK messages that are explicitly addressed to my own callsign (my_call)
+        # Example: "DN9KGB-12:ack968" should be ignored ONLY if dst == my_call
+        if self.my_call and dst_call == self.my_call:
+            ack_pattern = re.compile(
+                rf"^{re.escape(self.my_call)}:ack\d+$",
+                re.IGNORECASE,
+            )
+            if ack_pattern.match(clean_msg_text):
+                _LOGGER.debug("Ignoring ACK addressed to my_call (%s): %s", self.my_call, clean_msg_text)
+                return
 
         # Update internal state for entities
         self.last_source = src_call
@@ -134,14 +146,8 @@ class MeshComGateway(asyncio.DatagramProtocol):
         self.last_timestamp = datetime.now(timezone.utc).isoformat()
         self.last_raw_json = payload
 
-
-        if is_time_beacon:
-            _LOGGER.debug("Time beacon received from %s: %s", src_call, clean_msg_text)
-            # Do not treat as "last_message"
-            self.last_message = None
-        else:
-            self.last_message = clean_msg_text.replace('"', "'")
-
+        # Store last message (sanitize quotes for UI)
+        self.last_message = clean_msg_text.replace('"', "'")
 
         # Fire custom event meshcom_message
         event_data: dict[str, Any] = {
@@ -150,7 +156,7 @@ class MeshComGateway(asyncio.DatagramProtocol):
             "msg": clean_msg_text,
             "raw_msg": raw_msg_text,
             "msg_id": message_id,
-            "is_time_beacon": is_time_beacon,
+            "is_time_beacon": False,
             "src_type": payload.get("src_type"),
             "firmware": payload.get("firmware"),
             "fw_sub": payload.get("fw_sub"),
@@ -161,7 +167,6 @@ class MeshComGateway(asyncio.DatagramProtocol):
         _LOGGER.debug("Firing event meshcom_message: %s", event_data)
         self.hass.bus.fire("meshcom_message", event_data)
 
-
         # Notify all registered listeners (sensor entities)
         for listener in list(self._listeners):
             self.hass.add_job(listener)
@@ -169,7 +174,7 @@ class MeshComGateway(asyncio.DatagramProtocol):
     # ENTITY LISTENER MANAGEMENT
     @callback
     def register_listener(
-        self, listener: Callable[[], Awaitable[None]] | Callable[[], None]
+            self, listener: Callable[[], Awaitable[None]] | Callable[[], None]
     ) -> Callable[[], None]:
         """Register a callback that is called when new data is available."""
         self._listeners.append(listener)
@@ -230,7 +235,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     my_call = options.get("my_call")
     groups_raw = options.get("groups", "")
     node_ip = options.get("node_ip")  # NEW
-    
+
     groups = [g.strip() for g in str(groups_raw).split(",") if g.strip()]
 
     loop = asyncio.get_running_loop()
