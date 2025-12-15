@@ -126,8 +126,8 @@ Examples:
 *,10,262
 ```
 
-`*` means: receive all broadcast messages.
-`10` means: WW-GE (worldwide German)
+`*` means: receive all broadcast messages.  
+`10` means: WW-GE (worldwide German)  
 `262` means: Germany
 
 List of groups: https://icssw.org/en/meshcom-grc-gruppen/
