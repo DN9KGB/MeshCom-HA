@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v0.1.2 - 2025-12-15
+
+### Added
+- Regex-based filtering of MeshCom ACK messages addressed to the configured `my_call`.
+- ACK messages in the format `<my_call>:ack<id>` are now ignored to prevent self-triggered events.
+- Improved message filtering to reduce internal MeshCom protocol noise.
+
+### Changed
+- Time beacon messages (`{CET}...`, `{CEST}...`) are now completely ignored:
+  - No sensor updates
+  - No `meshcom_message` events
+- Message parsing logic was refined to only process meaningful, human-readable text messages.
+- Reduced event and sensor noise caused by transport-level MeshCom responses.
+
+### Fixed
+- Prevented ACK responses to outgoing messages from appearing as incoming messages.
+- Avoided unintended automations triggered by MeshCom acknowledgements.
+
+---
+
 ## v0.1.1 - 2025-12-15
 
 ### Added
