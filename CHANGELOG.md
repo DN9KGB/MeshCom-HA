@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Notes
 - The removal of the raw JSON sensor and related event fields is a breaking change for setups relying on them. Adjust automations accordingly.
 
+---
+
 ## v0.1.2 - 2025-12-15
 
 ### Added
