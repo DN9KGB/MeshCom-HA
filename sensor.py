@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Awaitable
+from typing import Callable
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -26,7 +26,6 @@ async def async_setup_entry(
         MeshComSourceSensor(gateway, entry),
         MeshComDestinationSensor(gateway, entry),
         MeshComMessageIdSensor(gateway, entry),
-        MeshComRawJsonSensor(gateway, entry),
         MeshComTimestampSensor(gateway, entry),
     ]
 
@@ -102,24 +101,6 @@ class MeshComMessageIdSensor(MeshComBaseSensor):
         return self._gateway.last_message_id
 
 
-class MeshComRawJsonSensor(MeshComBaseSensor):
-    _attr_translation_key = "raw_json"
-
-    @property
-    def unique_id(self) -> str:
-        return f"{self._entry.entry_id}_raw_json"
-
-    @property
-    def native_value(self) -> str | None:
-        if self._gateway.last_raw_json is None:
-            return None
-
-        import json
-
-        try:
-            return json.dumps(self._gateway.last_raw_json, ensure_ascii=False)
-        except Exception:
-            return str(self._gateway.last_raw_json)
 
 
 class MeshComTimestampSensor(MeshComBaseSensor):

@@ -21,7 +21,6 @@ This integration enables full automation support for **bidirectional** MeshCom m
 - Destination Callsign
 - Message ID
 - Timestamp (device_class: timestamp, auto-localized)
-- Raw JSON
 
 ✔ Fires a custom event: **`meshcom_message`**  
 ✔ Event payload includes the configured **`my_call`**  
@@ -100,7 +99,7 @@ Examples:
 *,10,262
 ```
 
-`*` means: receive all broadcast messages.  
+`*` means: receive all group and broadcast messages (wildcard). Messages addressed to specific callsigns other than your own are still ignored.  
 `10` means: WW-GE (worldwide German)  
 `262` means: Germany
 
@@ -117,7 +116,6 @@ List of groups: https://icssw.org/en/meshcom-grc-gruppen/
 | `sensor.meshcom_destination_callsign` | Message destination (dst) |
 | `sensor.meshcom_message_id` | Message ID |
 | `sensor.meshcom_last_timestamp` | Timestamp of last valid message |
-| `sensor.meshcom_raw_json` | Full parsed MeshCom JSON payload |
 
 Only messages **with non-empty text** and matching the call/group filter are processed.
 
@@ -137,7 +135,6 @@ data:
   my_call: D1ABC
   firmware: 35
   fw_sub: "h"
-  raw: {...}
 ```
 
 ---

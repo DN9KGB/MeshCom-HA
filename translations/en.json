@@ -40,9 +40,6 @@
       "message_id": {
         "name": "MeshCom Message ID"
       },
-      "raw_json": {
-        "name": "MeshCom Raw JSON"
-      },
       "timestamp": {
         "name": "MeshCom Timestamp"
       }

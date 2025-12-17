@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v0.1.3 - 2025-12-17
+
+### Added
+- Support for wildcard group subscription: adding `"*"` to your groups now subscribes to all group/broadcast messages (messages not addressed to a specific callsign).
+
+### Changed
+- Destination filtering refined: uses a callsign pattern to better distinguish direct callsigns from group/broadcast destinations and applies wildcard logic accordingly.
+- README updated to clarify the meaning of `*` (wildcard) in group filters.
+
+### Removed
+- Sensor `sensor.meshcom_raw_json` was removed.
+- Event payload fields `raw_msg` and `raw` were removed from `meshcom_message`.
+- Internal gateway attribute `last_raw_json` removed.
+
+### Notes
+- The removal of the raw JSON sensor and related event fields is a breaking change for setups relying on them. Adjust automations accordingly.
+
 ## v0.1.2 - 2025-12-15
 
 ### Added

@@ -42,7 +42,6 @@ class MeshComGateway(asyncio.DatagramProtocol):
         self.last_destination: str | None = None
         self.last_message_id: str | None = None
         self.last_timestamp: str | None = None
-        self.last_raw_json: dict[str, Any] | None = None
         self.last_raw_bytes: bytes | None = None
 
     # UDP CONNECTION EVENTS
@@ -101,12 +100,29 @@ class MeshComGateway(asyncio.DatagramProtocol):
 
         # DESTINATION FILTER:
         # Only process messages where dst matches my_call or one of the groups.
+        # Special case: groups may contain "*" to subscribe to ALL group messages
+        # (i.e., messages not addressed to a specific callsign).
         allowed = False
 
         if self.my_call and dst_call == self.my_call:
             allowed = True
         elif dst_call in self.groups:
             allowed = True
+        else:
+            # If wildcard subscription is enabled, accept any message that looks like
+            # a group/broadcast (not a specific callsign).
+            # We treat anything that does NOT match a typical callsign pattern as a group.
+            # Examples of callsigns: DN9KGB, DN9KGB-12, OE3XYZ, DO1ABC-7
+            try:
+                callsign_re = re.compile(r"^[A-Z0-9]{1,3}\d[A-Z]{1,3}(?:-\d{1,2})?$")
+            except re.error:
+                callsign_re = None
+
+            wildcard_enabled = "*" in self.groups
+            if wildcard_enabled:
+                looks_like_callsign = bool(callsign_re and callsign_re.match(dst_call))
+                if not looks_like_callsign:
+                    allowed = True
 
         if not allowed:
             _LOGGER.debug(
@@ -144,7 +160,6 @@ class MeshComGateway(asyncio.DatagramProtocol):
         self.last_destination = dst_call
         self.last_message_id = message_id
         self.last_timestamp = datetime.now(timezone.utc).isoformat()
-        self.last_raw_json = payload
 
         # Store last message (sanitize quotes for UI)
         self.last_message = clean_msg_text.replace('"', "'")
@@ -154,13 +169,11 @@ class MeshComGateway(asyncio.DatagramProtocol):
             "src": src_call,
             "dst": dst_call,
             "msg": clean_msg_text,
-            "raw_msg": raw_msg_text,
             "msg_id": message_id,
             "is_time_beacon": False,
             "src_type": payload.get("src_type"),
             "firmware": payload.get("firmware"),
             "fw_sub": payload.get("fw_sub"),
-            "raw": payload,
             "my_call": self.my_call,
         }
 
